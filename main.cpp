@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QString>
 #include <QList>
+#include <QHash>
 #include <QDir>
 
 // Абстрактный класс ExplorerStrategy, используемый для определения стратегий
@@ -158,7 +159,11 @@ public:
             //цикл по всем папкам в текущей папке
             foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name | QDir::Type))
             {
-                FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
+                if (folder.isSymLink()) { // проверка на ссылку
+                    hash[FileType(folder)] = folder.size();
+                } else {
+                    FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
+                }
             }
             //цикл по всем файлам в папке
             foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))

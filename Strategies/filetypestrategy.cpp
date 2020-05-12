@@ -1,26 +1,25 @@
 #include "filetypestrategy.h"
 
-#include <QTextStream>
 #include <QFileInfo>
 #include <QString>
 #include <QDir>
 
 //функция вывода информации о содержимом папки
-void FileTypeStrategy::Explore (const QString &path)
+QString FileTypeStrategy::Explore (const QString &path)
 {
-    QTextStream out(stdout);
     QFileInfo pathInfo(path);
+    QString result;
 
     // проверка объекта на существование
     if (pathInfo.exists() == false) {
-        out << "The object doesn\'t exist.\n" << flush;
-        return;
+        result += "The object doesn\'t exist.\n";
+        return result;
     }
 
     // проверка доступа к объекту
     if (pathInfo.isReadable() == false) {
-        out << "The program has no access to this object.\n" << flush;
-        return;
+        result += "The program has no access to this object.\n";
+        return result;
     }
 
     // проверка на неполноту пути
@@ -31,15 +30,15 @@ void FileTypeStrategy::Explore (const QString &path)
     if (pathInfo.isDir() && !pathInfo.isSymLink()) {
         // проверка папки на пустоту
         if (pathInfo.dir().isEmpty()) {
-            out << "The folder is empty.\n" << flush;
-            return;
+            result += "The folder is empty.\n";
+            return result;
         }
 
-        QDir dir(path);
+        QDir dir(pathInfo.absoluteFilePath());
         QHash<QString, quint64> hash;
-        quint64 temp = QFileInfo(path + '.').size();
+        quint64 temp = QFileInfo(pathInfo.absoluteFilePath() + '.').size();
         if (temp) {
-            hash[FileType(path + '.')] = temp;
+            hash[FileType(pathInfo.absoluteFilePath() + '.')] = temp;
         }
 
         //вычисление размеров объектов
@@ -47,7 +46,9 @@ void FileTypeStrategy::Explore (const QString &path)
         foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
         {
             if (folder.isSymLink()) { // проверка на ссылку
-                hash[FileType(folder)] = folder.size();
+                if (folder.isShortcut()) {
+                    hash[FileType(folder)] += folder.size();
+                }
             } else {
                 FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
             }
@@ -69,20 +70,20 @@ void FileTypeStrategy::Explore (const QString &path)
 
         // если папка ничего не весит, то выходим из функции
         if (totalSize == 0) {
-            out << "The folder has size 0.\n" << flush;
-            return;
+            result += "The folder has size 0.\n";
+            return result;
         }
 
         types.sort(); // сортировка типов по их названиям
 
         //вывод результатов
         for (int i = 0; i < types.size(); i++) {
-            out << types[i] << ", size percentage: " << ((double)hash[types[i]] / totalSize) * 100 << "%\n" << flush;
+            result += types[i] + ", size percentage: " + QString::number(((double)hash[types[i]] / totalSize) * 100) + "%\n";
         }
     } else { // обработка файла, не являющегося папокй
-        out << FileType(pathInfo) << ", size percentage: 100%\n" << flush;
+        result += FileType(pathInfo) + ", size percentage: 100%\n";
     }
-    out << '\n' << flush;
+    return result;
 }
 
 // функция обработки вложенной папки
@@ -96,7 +97,9 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
     foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
     {
         if (folder.isSymLink()) { // проверка на ссылку
-            hash[FileType(folder)] += folder.size();
+            if (folder.isShortcut()) {
+                hash[FileType(folder)] += folder.size();
+            }
         } else {
             FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с вложенной папкой
         }

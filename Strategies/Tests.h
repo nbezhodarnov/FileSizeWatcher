@@ -10,19 +10,21 @@ class Tests {
 public:
     explicit Tests () {
         QTextStream out(stdout);
-        QString test_results_expected[5][2];
+        QString test_results_expected[6][2];
         test_results_expected[0][0] = QString::fromUtf8("");
         test_results_expected[1][0] = QString::fromUtf8("");
         test_results_expected[2][0] = QString::fromUtf8("");
         test_results_expected[3][0] = QString::fromUtf8("The folder is empty.\n");
         test_results_expected[4][0] = QString::fromUtf8("Test5.txt, size percentage: 100%\n");
+        test_results_expected[5][0] = QString::fromUtf8("The object doesn\'t exist.\n");
         test_results_expected[0][1] = QString::fromUtf8("");
         test_results_expected[1][1] = QString::fromUtf8("");
         test_results_expected[2][1] = QString::fromUtf8("");
         test_results_expected[3][1] = QString::fromUtf8("The folder is empty.\n");
         test_results_expected[4][1] = QString::fromUtf8(".txt, size percentage: 100%\n");
+        test_results_expected[5][1] = QString::fromUtf8("The object doesn\'t exist.\n");
         QString path = QString::fromUtf8("../FileSizeWatcher_Part1/Tests/Test0");
-        for (int i = 1; i < 6; i++) {
+        for (int i = 1; i < 7; i++) {
             switch (i) {
                 case 5: {
                     path.append(".txt");

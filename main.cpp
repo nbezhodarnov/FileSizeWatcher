@@ -38,7 +38,7 @@ public:
             return;
         }
 
-        if (pathInfo.isDir()) {
+        if (pathInfo.isDir() && !pathInfo.isSymLink()) {
             // подготовка строки к работе
             QString pathAddition(".");
             if (path.at(path.size() - 1) != '/') {
@@ -51,7 +51,7 @@ public:
 
             //вычисление размеров объектов
             //цикл по всем папкам в текущей папке
-            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name | QDir::Type))
+            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
             {
                 if (folder.isSymLink()) { // проверка на ссылку
                     tempSize = folder.size();
@@ -78,7 +78,7 @@ public:
             //вывод результатов
             auto iterator = sizes.begin();
             //цикл по всем папкам в текущей папке
-            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name | QDir::Type))
+            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
             {
                 out << folder.fileName() << ", size percentage: " << ((double)*iterator / totalSize) * 100 << "%\n" << flush;
                 iterator++;
@@ -144,7 +144,7 @@ public:
             return;
         }
 
-        if (pathInfo.isDir()) {
+        if (pathInfo.isDir() && !pathInfo.isSymLink()) {
             // подготовка строки к работе
             QString pathAddition(".");
             if (path.at(path.size() - 1) != '/') {
@@ -153,11 +153,14 @@ public:
 
             QDir dir(path);
             QHash<QString, quint64> hash;
-            hash[FileType(path + pathAddition)] = QFileInfo(path + pathAddition).size();
+            quint64 temp = QFileInfo(path + pathAddition).size();
+            if (temp) {
+                hash[FileType(path + pathAddition)] = temp;
+            }
 
             //вычисление размеров объектов
             //цикл по всем папкам в текущей папке
-            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name | QDir::Type))
+            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
             {
                 if (folder.isSymLink()) { // проверка на ссылку
                     hash[FileType(folder)] = folder.size();
@@ -202,7 +205,10 @@ private:
     // функция обработки вложенной папки
     void FolderSize(const QString &path, QHash<QString, quint64> &hash) {
         QDir dir(path); // текущая директория
-        hash[FileType(QFileInfo(path + "/."))] += QFileInfo(path + "/.").size();
+        quint64 temp = QFileInfo(path + "/.").size();
+        if (temp) {
+            hash[FileType(QFileInfo(path + "/."))] += temp;
+        }
         //цикл по всем папкам в текущей папке
         foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
         {

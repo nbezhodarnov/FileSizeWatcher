@@ -123,5 +123,5 @@ QString FileTypeStrategy::FileType(const QFileInfo &file) {
         return "unknown";
     }
 
-    return fileName.mid(i);//возвращение типа файла
+    return fileName.mid(i); // возвращение типа файла
 }

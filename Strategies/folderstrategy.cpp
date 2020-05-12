@@ -16,21 +16,27 @@ void FolderStrategy::Explore (const QString &path)
         out << "The object doesn\'t exist.\n" << flush;
         return;
     }
+
     // проверка доступа к объекту
     if (pathInfo.isReadable() == false) {
         out << "The program has no access to this object.\n" << flush;
         return;
     }
 
+    // проверка на неполноту пути
+    if (QFileInfo(path + '/').isDir()) {
+        pathInfo.setFile(path + '/');
+    }
+
     if (pathInfo.isDir() && !pathInfo.isSymLink()) {
-        // подготовка строки к работе
-        QString pathAddition(".");
-        if (path.at(path.size() - 1) != '/') {
-            pathAddition.insert(0, '/');
+        // проверка папки на пустоту
+        if (pathInfo.dir().isEmpty()) {
+            out << "The folder is empty.\n" << flush;
+            return;
         }
 
         QDir dir(path);
-        quint64 totalSize = QFileInfo(path + pathAddition).size(), tempSize; // 1 - итоговый размер папки (начальное значение задаётся такое, чтобы вычислить реальный размер папки), 2 - временная переменная
+        quint64 totalSize = QFileInfo(path + '.').size(), tempSize; // 1 - итоговый размер папки (начальное значение задаётся такое, чтобы вычислить реальный размер папки), 2 - временная переменная
         QList<quint64> sizes; // массив размеров объектов
 
         //вычисление размеров объектов

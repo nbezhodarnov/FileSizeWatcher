@@ -16,24 +16,30 @@ void FileTypeStrategy::Explore (const QString &path)
         out << "The object doesn\'t exist.\n" << flush;
         return;
     }
+
     // проверка доступа к объекту
     if (pathInfo.isReadable() == false) {
         out << "The program has no access to this object.\n" << flush;
         return;
     }
 
+    // проверка на неполноту пути
+    if (QFileInfo(path + '/').isDir()) {
+        pathInfo.setFile(path + '/');
+    }
+
     if (pathInfo.isDir() && !pathInfo.isSymLink()) {
-        // подготовка строки к работе
-        QString pathAddition(".");
-        if (path.at(path.size() - 1) != '/') {
-            pathAddition.insert(0, '/');
+        // проверка папки на пустоту
+        if (pathInfo.dir().isEmpty()) {
+            out << "The folder is empty.\n" << flush;
+            return;
         }
 
         QDir dir(path);
         QHash<QString, quint64> hash;
-        quint64 temp = QFileInfo(path + pathAddition).size();
+        quint64 temp = QFileInfo(path + '.').size();
         if (temp) {
-            hash[FileType(path + pathAddition)] = temp;
+            hash[FileType(path + '.')] = temp;
         }
 
         //вычисление размеров объектов

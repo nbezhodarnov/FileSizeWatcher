@@ -160,7 +160,7 @@ public:
 
             //вычисление размеров объектов
             //цикл по всем папкам в текущей папке
-            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
+            foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
             {
                 if (folder.isSymLink()) { // проверка на ссылку
                     hash[FileType(folder)] = folder.size();
@@ -169,7 +169,7 @@ public:
                 }
             }
             //цикл по всем файлам в папке
-            foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
+            foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden))
             {
                 hash[FileType(file)] = file.size(); // вычисляется размер файла
             }

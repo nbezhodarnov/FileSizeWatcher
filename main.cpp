@@ -228,14 +228,14 @@ private:
 
     // функция определения типа файла
     QString FileType(const QFileInfo &file) {
-        if (file.isDir()) { // папка
-            return "directory";
-        }
         if (file.isSymbolicLink()) { // ссылка
             return "symlink";
         }
         if (file.isShortcut()) { // ярлык
             return "shortcut";
+        }
+        if (file.isDir()) { // папка
+            return "directory";
         }
 
         QString fileName = file.fileName(); // название файла

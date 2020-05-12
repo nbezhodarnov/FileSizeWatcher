@@ -12,11 +12,11 @@ public:
     FolderStrategy() {};
 
     // функция вывода информации о содержимом папки
-    void Explore (const QString &path);
+    void Explore (const QString &);
 
 private:
     // функция вычисления размера папки
-    quint64 FolderSize(const QString &path);
+    quint64 FolderSize(const QString &);
 };
 
 

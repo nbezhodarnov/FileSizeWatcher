@@ -40,10 +40,10 @@ QString FolderStrategy::Explore (const QString &path)
 
         //вычисление размеров объектов
         //цикл по всем папкам в текущей папке
-        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
+        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
             if (folder.isSymLink()) { // проверка на ссылку
-                if (folder.isShortcut()) {
+                if (folder.fileName().mid(folder.fileName().lastIndexOf('.') + 1) == "lnk") {
                     tempSize = folder.size();
                 } else {
                     tempSize = 0;
@@ -55,7 +55,7 @@ QString FolderStrategy::Explore (const QString &path)
             totalSize += tempSize;
         }
         //цикл по всем файлам в папке
-        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
+        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
             tempSize = file.size(); // вычисляется размер файла
             sizes.append(tempSize);
@@ -71,13 +71,13 @@ QString FolderStrategy::Explore (const QString &path)
         //вывод результатов
         auto iterator = sizes.begin();
         //цикл по всем папкам в текущей папке
-        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
+        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
             result += folder.fileName() + ", size percentage: " + QString::number(((double)*iterator / totalSize) * 100) + "%\n";
             iterator++;
         }
         //цикл по всем файлам в папке
-        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden, QDir::Name))
+        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
             result += file.fileName() + ", size percentage: " + QString::number(((double)*iterator / totalSize) * 100) + "%\n";
             iterator++;
@@ -94,10 +94,10 @@ quint64 FolderStrategy::FolderSize(const QString &path) {
     quint64 size = QFileInfo(path + "/.").size(); // объявление переменной, отвечающей за размер текущей папки (начальное значение задаётся такое, чтобы вычислить реальный размер папки)
 
     //цикл по всем папкам в текущей папке
-    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
+    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
         if (folder.isSymLink()) { // проверка на ссылку
-            if (folder.isShortcut()) {
+            if (folder.fileName().mid(folder.fileName().lastIndexOf('.') + 1) == "lnk") {
                 size += folder.size();
             }
         } else {
@@ -106,7 +106,7 @@ quint64 FolderStrategy::FolderSize(const QString &path) {
     }
 
     //цикл по всем файлам в папке
-    foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden))
+    foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
         size += file.size(); // вычисляется размер файла
     }

@@ -43,10 +43,10 @@ QString FileTypeStrategy::Explore (const QString &path)
 
         //вычисление размеров объектов
         //цикл по всем папкам в текущей папке
-        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
+        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
         {
             if (folder.isSymLink()) { // проверка на ссылку
-                if (folder.isShortcut()) {
+                if (FileType(folder) == ".lnk") {
                     hash[FileType(folder)] += folder.size();
                 }
             } else {
@@ -54,9 +54,9 @@ QString FileTypeStrategy::Explore (const QString &path)
             }
         }
         //цикл по всем файлам в папке
-        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden))
+        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
         {
-            hash[FileType(file)] = file.size(); // вычисляется размер файла
+            hash[FileType(file)] += file.size(); // вычисляется размер файла
         }
 
         QStringList types; // массив типов
@@ -94,10 +94,10 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
         hash[FileType(QFileInfo(path + "/."))] += temp;
     }
     //цикл по всем папкам в текущей папке
-    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
+    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
         if (folder.isSymLink()) { // проверка на ссылку
-            if (folder.isShortcut()) {
+            if (FileType(folder) == ".lnk") {
                 hash[FileType(folder)] += folder.size();
             }
         } else {
@@ -106,7 +106,7 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
     }
 
     //цикл по всем файлам в папке
-    foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden))
+    foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
         hash[FileType(file)] += file.size(); // вычисляется размер файла
     }
@@ -114,11 +114,8 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
 
 // функция определения типа файла
 QString FileTypeStrategy::FileType(const QFileInfo &file) {
-    if (file.isSymbolicLink()) { // ссылка
+    if (file.isSymLink()) { // ссылка
         return "symlink";
-    }
-    if (file.isShortcut()) { // ярлык
-        return "shortcut";
     }
     if (file.isDir()) { // папка
         return "directory";

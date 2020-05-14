@@ -8,7 +8,7 @@ class ExplorerStrategy
 {
 public:
     ExplorerStrategy() {};
-    virtual void Explore (const QString &)=0;
+    virtual QString Explore (const QString &)=0;
     virtual ~ExplorerStrategy() {};
 };
 

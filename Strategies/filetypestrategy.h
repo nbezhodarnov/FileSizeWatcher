@@ -13,7 +13,7 @@ public:
     FileTypeStrategy() {};
 
     //функция вывода информации о содержимом папки
-    void Explore (const QString &);
+    QString Explore (const QString &);
 
 private:
     // функция обработки вложенной папки

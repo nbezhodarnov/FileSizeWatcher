@@ -1,26 +1,26 @@
 #include "filetypestrategy.h"
 
-#include <QTextStream>
 #include <QFileInfo>
 #include <QString>
+#include <QFile>
 #include <QDir>
 
 //функция вывода информации о содержимом папки
-void FileTypeStrategy::Explore (const QString &path)
+QString FileTypeStrategy::Explore (const QString &path)
 {
-    QTextStream out(stdout);
     QFileInfo pathInfo(path);
+    QString result;
 
     // проверка объекта на существование
     if (pathInfo.exists() == false) {
-        out << "The object doesn\'t exist.\n" << flush;
-        return;
+        result += "The object doesn\'t exist.\n";
+        return result;
     }
 
     // проверка доступа к объекту
     if (pathInfo.isReadable() == false) {
-        out << "The program has no access to this object.\n" << flush;
-        return;
+        result += "The program has no access to this object.\n";
+        return result;
     }
 
     // проверка на неполноту пути
@@ -31,31 +31,34 @@ void FileTypeStrategy::Explore (const QString &path)
     if (pathInfo.isDir() && !pathInfo.isSymLink()) {
         // проверка папки на пустоту
         if (pathInfo.dir().isEmpty()) {
-            out << "The folder is empty.\n" << flush;
-            return;
+            result += "The folder is empty.\n";
+            return result;
         }
 
-        QDir dir(path);
+        QDir dir(pathInfo.absoluteFilePath());
         QHash<QString, quint64> hash;
-        quint64 temp = QFileInfo(path + '.').size();
+        quint64 temp = QFileInfo(pathInfo.absoluteFilePath() + '.').size();
         if (temp) {
-            hash[FileType(path + '.')] = temp;
+            hash[FileType(pathInfo.absoluteFilePath() + '.')] = temp;
         }
 
         //вычисление размеров объектов
         //цикл по всем папкам в текущей папке
-        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
+        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System | QDir::NoSymLinks))
         {
-            if (folder.isSymLink()) { // проверка на ссылку
-                hash[FileType(folder)] = folder.size();
-            } else {
-                FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
-            }
+            FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
         }
         //цикл по всем файлам в папке
-        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden))
+        foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
         {
-            hash[FileType(file)] = file.size(); // вычисляется размер файла
+            if (file.isSymLink()) { // проверка на ярлык
+                QFile fileOpen(file.absoluteFilePath());
+                fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+                hash[FileType(file)] += fileOpen.size(); // вычисляется размер файла
+                fileOpen.close();
+                continue;
+            }
+            hash[FileType(file)] += file.size(); // вычисляется размер файла
         }
 
         QStringList types; // массив типов
@@ -69,20 +72,20 @@ void FileTypeStrategy::Explore (const QString &path)
 
         // если папка ничего не весит, то выходим из функции
         if (totalSize == 0) {
-            out << "The folder has size 0.\n" << flush;
-            return;
+            result += "The folder has size 0.\n";
+            return result;
         }
 
         types.sort(); // сортировка типов по их названиям
 
         //вывод результатов
         for (int i = 0; i < types.size(); i++) {
-            out << types[i] << ", size percentage: " << ((double)hash[types[i]] / totalSize) * 100 << "%\n" << flush;
+            result += types[i] + ", size percentage: " + QString::number(((double)hash[types[i]] / totalSize) * 100) + "%\n";
         }
     } else { // обработка файла, не являющегося папокй
-        out << FileType(pathInfo) << ", size percentage: 100%\n" << flush;
+        result += FileType(pathInfo) + ", size percentage: 100%\n";
     }
-    out << '\n' << flush;
+    return result;
 }
 
 // функция обработки вложенной папки
@@ -93,39 +96,41 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
         hash[FileType(QFileInfo(path + "/."))] += temp;
     }
     //цикл по всем папкам в текущей папке
-    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden))
+    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System | QDir::NoSymLinks))
     {
-        if (folder.isSymLink()) { // проверка на ссылку
-            hash[FileType(folder)] += folder.size();
-        } else {
-            FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с вложенной папкой
-        }
+        FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с вложенной папкой
     }
 
     //цикл по всем файлам в папке
-    foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden))
+    foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
+        if (file.isSymLink()) { // проверка на ярлык
+            QFile fileOpen(file.absoluteFilePath());
+            fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+            hash[FileType(file)] += fileOpen.size(); // вычисляется размер файла
+            fileOpen.close();
+            continue;
+        }
         hash[FileType(file)] += file.size(); // вычисляется размер файла
     }
 }
 
 // функция определения типа файла
 QString FileTypeStrategy::FileType(const QFileInfo &file) {
-    if (file.isSymbolicLink()) { // ссылка
+    if (file.isSymLink()) { // ссылка
+        if (file.fileName().mid(file.fileName().lastIndexOf('.') + 1) == "lnk") { // ярлык
+            return ".lnk";
+        }
         return "symlink";
-    }
-    if (file.isShortcut()) { // ярлык
-        return "shortcut";
     }
     if (file.isDir()) { // папка
         return "directory";
     }
 
     QString fileName = file.fileName(); // название файла
-    int i = fileName.size() - 1;
-    for (; (i >= 0) && (fileName[i] != '.'); i--); // поиск символа .
+    int i = fileName.lastIndexOf('.'); // поиск символа .
 
-    if (i < 0) { // неизвестный тип (отсутствует символ .)
+    if (i == -1) { // неизвестный тип (отсутствует символ .)
         return "unknown";
     }
 

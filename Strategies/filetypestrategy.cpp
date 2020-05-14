@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QString>
+#include <QFile>
 #include <QDir>
 
 //функция вывода информации о содержимом папки
@@ -43,19 +44,20 @@ QString FileTypeStrategy::Explore (const QString &path)
 
         //вычисление размеров объектов
         //цикл по всем папкам в текущей папке
-        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
+        foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System | QDir::NoSymLinks))
         {
-            if (folder.isSymLink()) { // проверка на ссылку
-                if (FileType(folder) == ".lnk") {
-                    hash[FileType(folder)] += folder.size();
-                }
-            } else {
-                FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
-            }
+            FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с папкой
         }
         //цикл по всем файлам в папке
         foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
         {
+            if (file.isSymLink()) { // проверка на ярлык
+                QFile fileOpen(file.absoluteFilePath());
+                fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+                hash[FileType(file)] += fileOpen.size(); // вычисляется размер файла
+                fileOpen.close();
+                continue;
+            }
             hash[FileType(file)] += file.size(); // вычисляется размер файла
         }
 
@@ -94,20 +96,21 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
         hash[FileType(QFileInfo(path + "/."))] += temp;
     }
     //цикл по всем папкам в текущей папке
-    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
+    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System | QDir::NoSymLinks))
     {
-        if (folder.isSymLink()) { // проверка на ссылку
-            if (FileType(folder) == ".lnk") {
-                hash[FileType(folder)] += folder.size();
-            }
-        } else {
-            FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с вложенной папкой
-        }
+        FolderSize(folder.path() + '/' + folder.fileName(), hash); // проводятся вычисления с вложенной папкой
     }
 
     //цикл по всем файлам в папке
     foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
+        if (file.isSymLink()) { // проверка на ярлык
+            QFile fileOpen(file.absoluteFilePath());
+            fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+            hash[FileType(file)] += fileOpen.size(); // вычисляется размер файла
+            fileOpen.close();
+            continue;
+        }
         hash[FileType(file)] += file.size(); // вычисляется размер файла
     }
 }
@@ -115,6 +118,9 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
 // функция определения типа файла
 QString FileTypeStrategy::FileType(const QFileInfo &file) {
     if (file.isSymLink()) { // ссылка
+        if (file.fileName().mid(file.fileName().lastIndexOf('.') + 1) == "lnk") { // ярлык
+            return ".lnk";
+        }
         return "symlink";
     }
     if (file.isDir()) { // папка
@@ -122,10 +128,9 @@ QString FileTypeStrategy::FileType(const QFileInfo &file) {
     }
 
     QString fileName = file.fileName(); // название файла
-    int i = fileName.size() - 1;
-    for (; (i >= 0) && (fileName[i] != '.'); i--); // поиск символа .
+    int i = fileName.lastIndexOf('.'); // поиск символа .
 
-    if (i < 0) { // неизвестный тип (отсутствует символ .)
+    if (i == -1) { // неизвестный тип (отсутствует символ .)
         return "unknown";
     }
 

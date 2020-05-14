@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QString>
+#include <QFile>
 #include <QDir>
 
 // функция вывода информации о содержимом папки
@@ -43,10 +44,10 @@ QString FolderStrategy::Explore (const QString &path)
         foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
             if (folder.isSymLink()) { // проверка на ссылку
-                if (folder.fileName().mid(folder.fileName().lastIndexOf('.') + 1) == "lnk") {
-                    tempSize = folder.size();
+                if (folder.fileName().mid(folder.fileName().lastIndexOf('.') + 1) == "lnk") { // проверка на ярлык
+                    continue; // пропускаем ярлыки
                 } else {
-                    tempSize = 0;
+                    tempSize = 0; // символические ссылки ничего не весят
                 }
             } else {
                 tempSize = FolderSize(folder.path() + '/' + folder.fileName()); // вычисляется размер папки
@@ -57,7 +58,14 @@ QString FolderStrategy::Explore (const QString &path)
         //цикл по всем файлам в папке
         foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
-            tempSize = file.size(); // вычисляется размер файла
+            if (file.isSymLink()) { // проверка на ярлык
+                QFile fileOpen(file.absoluteFilePath());
+                fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+                tempSize = fileOpen.size(); // вычисляется размер файла
+                fileOpen.close();
+            } else {
+                tempSize = file.size(); // вычисляется размер файла
+            }
             sizes.append(tempSize);
             totalSize += tempSize;
         }
@@ -73,6 +81,9 @@ QString FolderStrategy::Explore (const QString &path)
         //цикл по всем папкам в текущей папке
         foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System, QDir::Name))
         {
+            if (folder.isSymLink() && folder.fileName().mid(folder.fileName().lastIndexOf('.') + 1) == "lnk") { // проверка на ярлык
+                continue; // пропускаем ярлыки
+            }
             result += folder.fileName() + ", size percentage: " + QString::number(((double)*iterator / totalSize) * 100) + "%\n";
             iterator++;
         }
@@ -94,20 +105,21 @@ quint64 FolderStrategy::FolderSize(const QString &path) {
     quint64 size = QFileInfo(path + "/.").size(); // объявление переменной, отвечающей за размер текущей папки (начальное значение задаётся такое, чтобы вычислить реальный размер папки)
 
     //цикл по всем папкам в текущей папке
-    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
+    foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System | QDir::NoSymLinks))
     {
-        if (folder.isSymLink()) { // проверка на ссылку
-            if (folder.fileName().mid(folder.fileName().lastIndexOf('.') + 1) == "lnk") {
-                size += folder.size();
-            }
-        } else {
-            size += FolderSize(folder.path() + '/' + folder.fileName()); // вычисляется размер папки
-        }
+        size += FolderSize(folder.path() + '/' + folder.fileName()); // вычисляется размер папки
     }
 
     //цикл по всем файлам в папке
     foreach (QFileInfo file, dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System))
     {
+        if (file.isSymLink()) { // проверка на ярлык
+            QFile fileOpen(file.absoluteFilePath());
+            fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+            size += fileOpen.size(); // вычисляется размер файла
+            fileOpen.close();
+            continue;
+        }
         size += file.size(); // вычисляется размер файла
     }
 

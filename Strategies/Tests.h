@@ -4,6 +4,10 @@
 #include <QTextStream>
 #include <QTextCodec>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "Strategies/filetypestrategy.h"
 #include "Strategies/folderstrategy.h"
 
@@ -11,7 +15,9 @@ class Tests {
 public:
     explicit Tests () {
         QTextStream out(stdout);
-        out.setCodec(QTextCodec::codecForName("1251"));
+        #if defined(Q_OS_WIN)
+        SetConsoleOutputCP(1251);
+        #endif
         QString test_results_expected[7][2];
         test_results_expected[0][0] = QString::fromUtf8("Heroes-II-of-Might-and-Magic-2-icon.png, size percentage: 99.9442%\nТекстовый файл (1).txt, size percentage: 0.0363711%\nТекстовый файл.txt, size percentage: 0.0193979%\n");
         test_results_expected[1][0] = QString::fromUtf8("Новая папка, size percentage: 0%\nНовая папка (1), size percentage: 20.3378%\nHeroes-II-of-Might-and-Magic-2-icon.png, size percentage: 79.6177%\nТекстовый файл (1).txt, size percentage: 0.028974%\nТекстовый файл.txt, size percentage: 0.0154528%\n");

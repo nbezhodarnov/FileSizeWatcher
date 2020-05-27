@@ -16,13 +16,13 @@ QList<FileSizeData> FolderStrategy::Explore (const QString &path)
 
     // проверка объекта на существование
     if (pathInfo.exists() == false) {
-        out << "The object doesn\'t exist.\n";
+        out << "The object doesn\'t exist.\n" << flush;
         return QList<FileSizeData>();
     }
 
     // проверка доступа к объекту
     if (pathInfo.isReadable() == false) {
-        out << "The program has no access to this object.\n";
+        out << "The program has no access to this object.\n" << flush;
         return QList<FileSizeData>();
     }
 
@@ -35,7 +35,7 @@ QList<FileSizeData> FolderStrategy::Explore (const QString &path)
     if (pathInfo.isDir() && !pathInfo.isSymLink()) {
         // проверка папки на пустоту
         if (pathInfo.dir().isEmpty()) {
-            out << "The folder is empty.\n";
+            out << "The folder is empty.\n" << flush;
             return QList<FileSizeData>();
         }
 
@@ -80,7 +80,7 @@ QList<FileSizeData> FolderStrategy::Explore (const QString &path)
 
         // если папка ничего не весит, то выходим из функции
         if (totalSize == 0) {
-            out << "The folder has size 0.\n";
+            out << "The folder has size 0.\n" << flush;
             return QList<FileSizeData>();
         }
 

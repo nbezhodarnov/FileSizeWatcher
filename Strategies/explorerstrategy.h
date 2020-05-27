@@ -2,13 +2,21 @@
 #define EXPLORERSTRATEGY_H
 
 #include <QString>
+#include <QList>
+
+#include "FileSizeData.h"
 
 // Абстрактный класс ExplorerStrategy, используемый для определения стратегий
 class ExplorerStrategy
 {
 public:
+    // конструктор
     ExplorerStrategy() {};
-    virtual QString Explore (const QString &)=0;
+
+    //абстрактная функция вычисления
+    virtual QList<FileSizeData> Explore (const QString &) = 0;
+
+    // виртуальный деструктор
     virtual ~ExplorerStrategy() {};
 };
 

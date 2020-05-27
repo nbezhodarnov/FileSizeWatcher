@@ -11,6 +11,7 @@
 #include "Strategies/filetypestrategy.h"
 #include "Strategies/folderstrategy.h"
 
+// класс Tests, осуществяющий проверку стратегий на примерах
 class Tests {
 public:
     explicit Tests () {
@@ -18,7 +19,20 @@ public:
         #if defined(Q_OS_WIN)
         SetConsoleOutputCP(1251);
         #endif
-        QString test_results_expected[7][2];
+
+        /* Набор тестов:
+         * Тест 1: не пустая папка без вложений
+         * Тест 2: не пустая папка, содержащая как файлы, так и папки, с вложениями уровня больше 1 (общий случай (не самый))
+         * Тест 3: не пустая папка, содержащая как файлы, так и папки, с вложениями уровня больше 1, в том числе и скрытые папки, ярлыки (особый случай в Windows) и символические ссылки (актуально только в Linux системах) - (общий случай)
+         * Тест 4: пустая папка
+         * Тест 5: не пустая папка без вложений, вес которой составляет 0 байт (актуально только для Windows)
+         * Тест 6: не пустая папка, содержащая только папку
+         * Тест 7: объект, не являющийся папкой
+         * Тест 8: несуществующий объект
+         */
+
+
+        /*QString test_results_expected[7][2];
         test_results_expected[0][0] = QString::fromUtf8("Heroes-II-of-Might-and-Magic-2-icon.png, size percentage: 99.9442%\nТекстовый файл (1).txt, size percentage: 0.0363711%\nТекстовый файл.txt, size percentage: 0.0193979%\n");
         test_results_expected[1][0] = QString::fromUtf8("Новая папка, size percentage: 0%\nНовая папка (1), size percentage: 20.3378%\nHeroes-II-of-Might-and-Magic-2-icon.png, size percentage: 79.6177%\nТекстовый файл (1).txt, size percentage: 0.028974%\nТекстовый файл.txt, size percentage: 0.0154528%\n");
         test_results_expected[2][0] = QString::fromUtf8(".vs, size percentage: 99.8674%\nTests, size percentage: 0%\nНовая папка, size percentage: 0%\nНовая папка (1), size percentage: 0.0288267%\nНовая папка (2), size percentage: 0.000171811%\nHeroes-II-of-Might-and-Magic-2-icon.png, size percentage: 0.103384%\nTests.lnk, size percentage: 0.000171811%\nТекстовый файл (1).txt, size percentage: 3.76229e-05%\nТекстовый файл.txt, size percentage: 2.00656e-05%\n");
@@ -42,41 +56,50 @@ public:
         test_results_expected[1][1] = QString::fromUtf8(".png, size percentage: 68.7405%\n.sav, size percentage: 17.5043%\n.txt, size percentage: 0.0933917%\ndirectory, size percentage: 13.6619%\n");
         test_results_expected[2][1] = QString::fromUtf8(".db, size percentage: 15.4881%\n.ipch, size percentage: 84.2735%\n.lnk, size percentage: 0.000343411%\n.png, size percentage: 0.10332%\n.sav, size percentage: 0.0287262%\n.suo, size percentage: 0.0442775%\n.txt, size percentage: 0.000140372%\ndirectory, size percentage: 0.0616034%\n");
         test_results_expected[4][1] = QString::fromUtf8(".txt, size percentage: 0%\ndirectory, size percentage: 100%\n");
-        #endif
+        #endif*/
+
+
+        // относительный путь к тестам
         QString path = QString::fromUtf8("../FileSizeWatcher_Part1/Tests/Test0");
-        for (int i = 1; i < 8; i++) {
+        // перебор всех тестов
+        for (int i = 1; i < 9; i++) {
             switch (i) {
-                case 6: {
+                case 7: {
                     path.append(".txt");
                 }
                 default: {
                     path[35] = QChar('0' + i);
                 }
             }
-            out << path << "\n\n";
+            // вывод
+            out << path << "\n\n" << flush;
             strategy = new FolderStrategy();
-            QString result = strategy->Explore(path);
-            out << result << '\n';
+            out << DataToString(strategy->Explore(path)) << '\n' << flush;
             delete strategy;
-            if (result == test_results_expected[i - 1][0]) {
-                out << "Test " << i << " passed.\n";
-            } else {
-                out << "Test " << i << " error.\n";
-            }
             strategy = new FileTypeStrategy();
-            result = strategy->Explore(path);
-            out << '\n' << result << '\n';
+            out << '\n' << flush;
+            out << DataToString(strategy->Explore(path)) << '\n' << flush;
             delete strategy;
-            if (result == test_results_expected[i - 1][1]) {
-                out << "Test " << i << " passed.\n";
-            } else {
-                out << "Test " << i << " error.\n";
-            }
             out << '\n' << flush;
         }
     }
 private:
     ExplorerStrategy *strategy;
+
+    // функция преобразования полученных данных в строку для вывода на консоль
+    // на входе QList<FileSizeData> - данные о размерах содержимого папки, на выходе QString - строка для вывода на консоль
+    QString DataToString(QList<FileSizeData> data) {
+        QString result;
+        for (auto iterator = data.begin(); iterator != data.end(); iterator++) {
+            result += iterator->FileInfo + ", size percentage: ";
+            if (iterator->sizePercentage < 0.01 && iterator->sizePercentage > 0) {
+                result += "< 0.01%\n";
+            } else {
+                result += QString::number(iterator->sizePercentage) + "%\n";
+            }
+        }
+        return result;
+    }
 };
 
 #endif // TESTS_H

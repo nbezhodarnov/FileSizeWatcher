@@ -1,26 +1,29 @@
 #include "filetypestrategy.h"
 
+#include <QTextStream>
 #include <QFileInfo>
 #include <QString>
 #include <QFile>
 #include <QDir>
 
-//функция вывода информации о содержимом папки
-QString FileTypeStrategy::Explore (const QString &path)
+// конкретная функция вычисления информации о размерах содержимого папки (с группировкой по типам данных)
+// на вход подаётся QString - путь к папке, на выходе QList<FileSizeData> - список данных о размере, занимаемом каждым типом в папке
+QList<FileSizeData> FileTypeStrategy::Explore (const QString &path)
 {
     QFileInfo pathInfo(path);
-    QString result;
+    QTextStream out(stdout);
+    QList<FileSizeData> result; // список данных о размере, занимаемом каждым типом в папке
 
     // проверка объекта на существование
     if (pathInfo.exists() == false) {
-        result += "The object doesn\'t exist.\n";
-        return result;
+        out << "The object doesn\'t exist.\n" << flush;
+        return QList<FileSizeData>();
     }
 
     // проверка доступа к объекту
     if (pathInfo.isReadable() == false) {
-        result += "The program has no access to this object.\n";
-        return result;
+        out << "The program has no access to this object.\n" << flush;
+        return QList<FileSizeData>();
     }
 
     // проверка на неполноту пути
@@ -28,19 +31,22 @@ QString FileTypeStrategy::Explore (const QString &path)
         pathInfo.setFile(path + '/');
     }
 
+    // проверка на то, что на входе была подана папка
     if (pathInfo.isDir() && !pathInfo.isSymLink()) {
         // проверка папки на пустоту
         if (pathInfo.dir().isEmpty()) {
-            result += "The folder is empty.\n";
-            return result;
+            out << "The folder is empty.\n" << flush;
+            return QList<FileSizeData>();
         }
 
         QDir dir(pathInfo.absoluteFilePath());
-        QHash<QString, quint64> hash;
+        QHash<QString, quint64> hash; // информация о размере в байтах, занимаемом каждым типом (QString - тип, quint64 - размер в байтах)
+        #if not defined(Q_OS_WIN)
         quint64 temp = QFileInfo(pathInfo.absoluteFilePath() + '.').size();
         if (temp) {
-            hash[FileType(pathInfo.absoluteFilePath() + '.')] = temp;
+            hash[FileType(QFileInfo(pathInfo.absoluteFilePath() + '.'))] = temp;
         }
+        #endif
 
         //вычисление размеров объектов
         //цикл по всем папкам в текущей папке
@@ -72,29 +78,41 @@ QString FileTypeStrategy::Explore (const QString &path)
 
         // если папка ничего не весит, то выходим из функции
         if (totalSize == 0) {
-            result += "The folder has size 0.\n";
-            return result;
+            out << "The folder has size 0.\n" << flush;
+            return QList<FileSizeData>();
         }
 
         types.sort(); // сортировка типов по их названиям
 
-        //вывод результатов
+        //сохранение результатов
         for (int i = 0; i < types.size(); i++) {
-            result += types[i] + ", size percentage: " + QString::number(((double)hash[types[i]] / totalSize) * 100) + "%\n";
+            result.append(FileSizeData(types[i], hash[types[i]], ((double)hash[types[i]] / totalSize) * 100));
         }
     } else { // обработка файла, не являющегося папокй
-        result += FileType(pathInfo) + ", size percentage: 100%\n";
+        quint64 fileSize = pathInfo.size(); // вычисляется размер файла
+        #if defined(Q_OS_WIN)
+        if (pathInfo.isSymLink()) { // проверка на ярлык
+            QFile fileOpen(pathInfo.absoluteFilePath());
+            fileOpen.open(QIODevice::ReadOnly); // в силу работы компилятора для вычисления размера ярлыка необходимо открыть его
+            fileSize = fileOpen.size(); // вычисляется размер файла
+            fileOpen.close();
+        }
+        #endif
+        result.append(FileSizeData(FileType(pathInfo), fileSize, 100));
     }
     return result;
 }
 
-// функция обработки вложенной папки
+// функция вычисления размера вложенной папки
+// на вход подаётся QString - путь к папке, ссылка на QHash<QString, quint64> - объект, содержащий информацию о размере, занимаемом каждым типом в папке (QString - тип данных, quint64 - размер в байтах)
 void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &hash) {
     QDir dir(path); // текущая директория
+    #if not defined(Q_OS_WIN)
     quint64 temp = QFileInfo(path + "/.").size();
     if (temp) {
         hash[FileType(QFileInfo(path + "/."))] += temp;
     }
+    #endif
     //цикл по всем папкам в текущей папке
     foreach (QFileInfo folder, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System | QDir::NoSymLinks))
     {
@@ -116,6 +134,7 @@ void FileTypeStrategy::FolderSize(const QString &path, QHash<QString, quint64> &
 }
 
 // функция определения типа файла
+// на вход подаётся QFileInfo - информация о файле, на выходе QString - тип файла
 QString FileTypeStrategy::FileType(const QFileInfo &file) {
     if (file.isSymLink()) { // ссылка
         if (file.fileName().mid(file.fileName().lastIndexOf('.') + 1) == "lnk") { // ярлык

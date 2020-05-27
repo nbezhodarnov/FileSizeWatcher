@@ -25,6 +25,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    Strategies/FileSizeData.h \
     Strategies/Tests.h \
     Strategies/explorerstrategy.h \
     Strategies/filetypestrategy.h \

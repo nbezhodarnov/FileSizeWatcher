@@ -1,7 +1,9 @@
-QT -= gui
+QT       += core gui
 
-CONFIG += c++11 console
-CONFIG -= app_bundle
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+
+TARGET = FileSizeWatcher_Part2-3
+TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -17,7 +19,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         Strategies/filetypestrategy.cpp \
         Strategies/folderstrategy.cpp \
-        main.cpp
+        main.cpp \
+        mainwindow.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -29,4 +32,8 @@ HEADERS += \
     Strategies/Tests.h \
     Strategies/explorerstrategy.h \
     Strategies/filetypestrategy.h \
-    Strategies/folderstrategy.h
+    Strategies/folderstrategy.h \
+    mainwindow.h
+
+FORMS += \
+    mainwindow.ui

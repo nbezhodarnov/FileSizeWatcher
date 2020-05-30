@@ -1,4 +1,4 @@
-#include <QCoreApplication>
+#include <QApplication>
 #include <QTextStream>
 #include <QString>
 
@@ -6,9 +6,15 @@
 #include "Strategies/folderstrategy.h"
 #include "Strategies/Tests.h"
 
+#include "mainwindow.h"
+
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QApplication a(argc, argv);
     Tests tests; // запуск тестов
-    return 0;//a.exec();
+
+    MainWindow window;
+    window.show();
+
+    return a.exec();
 }

@@ -52,11 +52,30 @@ MainWindow::MainWindow(QWidget *parent) :
     */
 }
 
+void MainWindow::infoShow() {
+    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
+    delete fileModel;
+    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
+    int length = 200;
+    int dx = 30;
+    //TODO: !!!!!
+    /*
+    Тут простейшая обработка ширины первого столбца относительно длины названия папки.
+    Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
+    Требуется доработка(переработка).
+    */
+    if (dirModel->fileName(index).length() * dx > length) {
+        length = length + dirModel->fileName(index).length() * dx;
+    }
+    this->statusBar()->showMessage("Выбранный путь: " + path);
+    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
+    view->setModel(fileModel);
+}
+
 void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
 {
     //Q_UNUSED(selected);
     Q_UNUSED(deselected);
-    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
     QModelIndexList indexs = selected.indexes();
     QString filePath = "";
 
@@ -65,29 +84,12 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
     if (indexs.count() >= 1) {
         QModelIndex ix =  indexs.constFirst();
         filePath = dirModel->filePath(ix);
-        this->statusBar()->showMessage("Выбранный путь: " + dirModel->filePath(indexs.constFirst()));
+        //this->statusBar()->showMessage("Выбранный путь: " + dirModel->filePath(indexs.constFirst()));
     }
 
     path = filePath;
 
-    delete fileModel;
-    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(filePath));
-
-    //TODO: !!!!!
-    /*
-    Тут простейшая обработка ширины первого столбца относительно длины названия папки.
-    Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
-    Требуется доработка(переработка).
-    */
-    int length = 200;
-    int dx = 30;
-
-    if (dirModel->fileName(index).length() * dx > length) {
-        length = length + dirModel->fileName(index).length() * dx;
-    }
-
-    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-    view->setModel(fileModel);
+    infoShow();
 }
 
 MainWindow::~MainWindow()
@@ -103,38 +105,12 @@ void MainWindow::on_folder_triggered()
 {
     delete groupingStrategy;
     groupingStrategy = new FolderStrategy();
-    delete fileModel;
-    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
-    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
-    int length = 200;
-    int dx = 30;
-
-    if (dirModel->fileName(index).length() * dx > length) {
-        length = length + dirModel->fileName(index).length() * dx;
-    }
-
-    this->statusBar()->showMessage("Выбранный путь: " + path);
-
-    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-    view->setModel(fileModel);
+    infoShow();
 }
 
 void MainWindow::on_fileType_triggered()
 {
     delete groupingStrategy;
     groupingStrategy = new FileTypeStrategy();
-    delete fileModel;
-    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
-    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
-    int length = 200;
-    int dx = 30;
-
-    if (dirModel->fileName(index).length() * dx > length) {
-        length = length + dirModel->fileName(index).length() * dx;
-    }
-
-    this->statusBar()->showMessage("Выбранный путь: " + path);
-
-    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-    view->setModel(fileModel);
+    infoShow();
 }

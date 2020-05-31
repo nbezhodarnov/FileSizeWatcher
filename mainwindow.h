@@ -36,6 +36,8 @@ private:
     QFileSystemModel *dirModel;
     FileSizeDataModel *fileModel;
     QString path;
+
+    void infoShow();
 };
 
 #endif // MAINWINDOW_H

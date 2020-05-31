@@ -11,19 +11,20 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    groupingStrategy = new FolderStrategy();
     QString homePath = QDir::homePath();
     // Определим  файловой системы:
     dirModel = new QFileSystemModel(this);
-    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Hidden | QDir::System);
     dirModel->setRootPath(homePath);
     ui->folderTreeView->setModel(dirModel);
     ui->folderTreeView->expandAll();
+    ui->folderTreeView->hideColumn(1);
+    ui->folderTreeView->hideColumn(3);
 
     view = new QListView(this);
     ui->splitter->addWidget(view);
-    fileModel = new QFileSystemModel(this);
-    fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    fileModel->setRootPath("/home/nblaaa/PR");
+    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(homePath));
     view->setModel(fileModel);
     delete view;
     view = new QTableView();
@@ -64,6 +65,9 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
         this->statusBar()->showMessage("Выбранный путь: " + dirModel->filePath(indexs.constFirst()));
     }
 
+    delete fileModel;
+    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(filePath));
+
     //TODO: !!!!!
     /*
     Тут простейшая обработка ширины первого столбца относительно длины названия папки.
@@ -78,7 +82,7 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
     }
 
     ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-    view->setRootIndex(fileModel->setRootPath(filePath));
+    view->setModel(fileModel);
 }
 
 MainWindow::~MainWindow()

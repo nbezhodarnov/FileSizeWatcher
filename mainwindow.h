@@ -6,6 +6,7 @@
 #include <QItemSelection>
 #include <QMainWindow>
 
+#include "DataModel/filesizedatamodel.h"
 #include "Strategies/filetypestrategy.h"
 #include "Strategies/folderstrategy.h"
 
@@ -28,7 +29,8 @@ private:
     Ui::MainWindow *ui;
     QAbstractItemView *view;
     ExplorerStrategy *groupingStrategy;
-    QFileSystemModel *dirModel, *fileModel;
+    QFileSystemModel *dirModel;
+    FileSizeDataModel *fileModel;
 };
 
 #endif // MAINWINDOW_H

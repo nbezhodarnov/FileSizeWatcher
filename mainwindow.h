@@ -21,6 +21,10 @@ class MainWindow : public QMainWindow
 private slots:
     void on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected);
 
+    void on_folder_triggered();
+
+    void on_fileType_triggered();
+
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -31,6 +35,7 @@ private:
     ExplorerStrategy *groupingStrategy;
     QFileSystemModel *dirModel;
     FileSizeDataModel *fileModel;
+    QString path;
 };
 
 #endif // MAINWINDOW_H

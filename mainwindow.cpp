@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     groupingStrategy = new FolderStrategy();
     QString homePath = QDir::homePath();
+    path = homePath;
     // Определим  файловой системы:
     dirModel = new QFileSystemModel(this);
     dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Hidden | QDir::System);
@@ -24,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     view = new QListView(this);
     ui->splitter->addWidget(view);
-    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(homePath));
+    fileModel = new FileSizeDataModel(this, QList<FileSizeData>());
     view->setModel(fileModel);
     delete view;
     view = new QTableView();
@@ -40,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Выполняем соединения слота и сигнала который вызывается когда осуществляется выбор элемента в TreeView
     connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
     //Пример организации установки курсора в TreeView относительно модельного индекса
+    /*
     QItemSelection toggleSelection;
     QModelIndex topLeft;
     topLeft = dirModel->index(homePath);
@@ -47,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     toggleSelection.select(topLeft, topLeft);
     selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
+    */
 }
 
 void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
@@ -64,6 +67,8 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
         filePath = dirModel->filePath(ix);
         this->statusBar()->showMessage("Выбранный путь: " + dirModel->filePath(indexs.constFirst()));
     }
+
+    path = filePath;
 
     delete fileModel;
     fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(filePath));
@@ -88,4 +93,48 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete dirModel;
+    delete groupingStrategy;
+    delete fileModel;
+    delete view;
+}
+
+void MainWindow::on_folder_triggered()
+{
+    delete groupingStrategy;
+    groupingStrategy = new FolderStrategy();
+    delete fileModel;
+    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
+    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
+    int length = 200;
+    int dx = 30;
+
+    if (dirModel->fileName(index).length() * dx > length) {
+        length = length + dirModel->fileName(index).length() * dx;
+    }
+
+    this->statusBar()->showMessage("Выбранный путь: " + path);
+
+    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
+    view->setModel(fileModel);
+}
+
+void MainWindow::on_fileType_triggered()
+{
+    delete groupingStrategy;
+    groupingStrategy = new FileTypeStrategy();
+    delete fileModel;
+    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
+    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
+    int length = 200;
+    int dx = 30;
+
+    if (dirModel->fileName(index).length() * dx > length) {
+        length = length + dirModel->fileName(index).length() * dx;
+    }
+
+    this->statusBar()->showMessage("Выбранный путь: " + path);
+
+    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
+    view->setModel(fileModel);
 }

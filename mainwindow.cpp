@@ -1,10 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QAbstractItemView>
-#include <QFileSystemModel>
+#include <QItemSelectionModel>
 #include <QTableView>
-#include <QListView>
 #include <QTreeView>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -12,28 +10,124 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    groupingStrategy = new FolderStrategy();
     QString homePath = QDir::homePath();
-    QFileSystemModel *dirModel, *fileModel;
+    path = homePath;
     // Определим  файловой системы:
     dirModel = new QFileSystemModel(this);
-    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Hidden | QDir::System);
     dirModel->setRootPath(homePath);
     ui->folderTreeView->setModel(dirModel);
     ui->folderTreeView->expandAll();
+    ui->folderTreeView->hideColumn(1);
+    ui->folderTreeView->hideColumn(3);
 
-    QAbstractItemView *view = new QListView(this);
-    ui->splitter->addWidget(view);
-    fileModel = new QFileSystemModel(this);
-    fileModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    fileModel->setRootPath("/home/nblaaa/PR");
-    view->setModel(fileModel);
-    delete view;
+    fileModel = new FileSizeDataModel(this, QList<FileSizeData>());
     view = new QTableView();
     view->setModel(fileModel);
     ui->splitter->addWidget(view);
+
+    QItemSelectionModel *selectionModel = ui->folderTreeView->selectionModel();
+
+    QModelIndex indexHomePath = dirModel->index(homePath);
+    QFileInfo fileInfo = dirModel->fileInfo(indexHomePath);
+
+    ui->folderTreeView->header()->resizeSection(0, 200);
+    //Выполняем соединения слота и сигнала который вызывается когда осуществляется выбор элемента в TreeView
+    connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
+    //Пример организации установки курсора в TreeView относительно модельного индекса
+    /*
+    QItemSelection toggleSelection;
+    QModelIndex topLeft;
+    topLeft = dirModel->index(homePath);
+    dirModel->setRootPath(homePath);
+
+    toggleSelection.select(topLeft, topLeft);
+    selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
+    */
+}
+
+void MainWindow::infoShow(bool refresh = true) {
+    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
+    if (refresh) {
+        delete fileModel;
+        fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
+    }
+    int length = 200;
+    int dx = 30;
+    //TODO: !!!!!
+    /*
+    Тут простейшая обработка ширины первого столбца относительно длины названия папки.
+    Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
+    Требуется доработка(переработка).
+    */
+    if (dirModel->fileName(index).length() * dx > length) {
+        length = length + dirModel->fileName(index).length() * dx;
+    }
+    this->statusBar()->showMessage("Выбранный путь: " + path);
+    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
+    view->setModel(fileModel);
+}
+
+void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    //Q_UNUSED(selected);
+    Q_UNUSED(deselected);
+    QModelIndexList indexs = selected.indexes();
+    QString filePath = "";
+
+    // Размещаем инфо в statusbar относительно выделенного модельного индекса
+
+    if (indexs.count() >= 1) {
+        QModelIndex ix =  indexs.constFirst();
+        filePath = dirModel->filePath(ix);
+        //this->statusBar()->showMessage("Выбранный путь: " + dirModel->filePath(indexs.constFirst()));
+    }
+
+    path = filePath;
+
+    infoShow();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete dirModel;
+    delete groupingStrategy;
+    delete fileModel;
+    delete view;
+}
+
+void MainWindow::on_folder_triggered()
+{
+    delete groupingStrategy;
+    groupingStrategy = new FolderStrategy();
+    infoShow();
+}
+
+void MainWindow::on_fileType_triggered()
+{
+    delete groupingStrategy;
+    groupingStrategy = new FileTypeStrategy();
+    infoShow();
+}
+
+void MainWindow::on_list_triggered()
+{
+    QList<int> width = ui->splitter->sizes();
+    delete view;
+    view = new QTreeView(this);
+    ui->splitter->addWidget(view);
+    ui->splitter->setSizes(width);
+    infoShow(false);
+}
+
+void MainWindow::on_table_triggered()
+{
+    QList<int> width = ui->splitter->sizes();
+    delete view;
+    view = new QTableView(this);
+    ui->splitter->addWidget(view);
+    ui->splitter->setSizes(width);
+    infoShow(false);
 }

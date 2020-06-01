@@ -48,7 +48,15 @@
     <addaction name="folder"/>
     <addaction name="fileType"/>
    </widget>
+   <widget class="QMenu" name="viewType">
+    <property name="title">
+     <string>Отображение</string>
+    </property>
+    <addaction name="list"/>
+    <addaction name="table"/>
+   </widget>
    <addaction name="strategyChoose"/>
+   <addaction name="viewType"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="folder">
@@ -59,6 +67,16 @@
   <action name="fileType">
    <property name="text">
     <string>По типам</string>
+   </property>
+  </action>
+  <action name="list">
+   <property name="text">
+    <string>Список</string>
+   </property>
+  </action>
+  <action name="table">
+   <property name="text">
+    <string>Таблица</string>
    </property>
   </action>
  </widget>

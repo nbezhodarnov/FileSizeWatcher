@@ -3,7 +3,6 @@
 
 #include <QItemSelectionModel>
 #include <QTableView>
-#include <QListView>
 #include <QTreeView>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -23,11 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->folderTreeView->hideColumn(1);
     ui->folderTreeView->hideColumn(3);
 
-    view = new QListView(this);
-    ui->splitter->addWidget(view);
     fileModel = new FileSizeDataModel(this, QList<FileSizeData>());
-    view->setModel(fileModel);
-    delete view;
     view = new QTableView();
     view->setModel(fileModel);
     ui->splitter->addWidget(view);
@@ -52,10 +47,12 @@ MainWindow::MainWindow(QWidget *parent) :
     */
 }
 
-void MainWindow::infoShow() {
+void MainWindow::infoShow(bool refresh = true) {
     QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
-    delete fileModel;
-    fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
+    if (refresh) {
+        delete fileModel;
+        fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
+    }
     int length = 200;
     int dx = 30;
     //TODO: !!!!!
@@ -113,4 +110,24 @@ void MainWindow::on_fileType_triggered()
     delete groupingStrategy;
     groupingStrategy = new FileTypeStrategy();
     infoShow();
+}
+
+void MainWindow::on_list_triggered()
+{
+    QList<int> width = ui->splitter->sizes();
+    delete view;
+    view = new QTreeView(this);
+    ui->splitter->addWidget(view);
+    ui->splitter->setSizes(width);
+    infoShow(false);
+}
+
+void MainWindow::on_table_triggered()
+{
+    QList<int> width = ui->splitter->sizes();
+    delete view;
+    view = new QTableView(this);
+    ui->splitter->addWidget(view);
+    ui->splitter->setSizes(width);
+    infoShow(false);
 }

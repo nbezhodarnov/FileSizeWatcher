@@ -2,7 +2,7 @@
 
 
 FileSizeDataModel::FileSizeDataModel(QObject *parent, QList<FileSizeData> dt) :
-    QAbstractTableModel(parent)
+    QAbstractItemModel(parent)
 {
     dataModel = dt;
 }
@@ -28,7 +28,7 @@ QVariant FileSizeDataModel::headerData(int section, Qt::Orientation orientation,
         return QVariant();
     }
     if (orientation == Qt::Vertical) {
-        return section;
+        return section + 1;
     }
     switch (section) {
     case NAME:
@@ -88,4 +88,54 @@ QVariant FileSizeDataModel::data(const QModelIndex &index, int role) const
         return result;
     }
     return QVariant();
+}
+
+bool FileSizeDataModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+    Q_UNUSED(index)
+    Q_UNUSED(value)
+    Q_UNUSED(role)
+    return false;
+    /*
+    bool result = false;
+    if (index.isValid() && role == Qt::EditRole) {
+        index.row(), index.column();
+        int row = index.row();
+        int column = index.column();
+        switch (column) {
+        case 0:
+            dataModel[row].FileInfo = value.toString();
+            break;
+        case 1:
+            dataModel[row].size = value.toInt();
+            break;
+        case 2:
+            dataModel[row].sizePercentage = value.toDouble();
+            break;
+        default:
+            break;
+        } // end switch column
+        emit dataChanged(index, index);
+        result = true;
+    }
+    return result;
+    */
+}
+
+Qt::ItemFlags FileSizeDataModel::flags(const QModelIndex &index) const {
+    Qt::ItemFlags result = QAbstractItemModel::flags(index);
+    return result;
+}
+
+QModelIndex FileSizeDataModel::index(int row, int column, const QModelIndex &parent) const {
+    Q_UNUSED(parent)
+    return createIndex(row, column, nullptr);
+}
+
+QModelIndex FileSizeDataModel::parent(const QModelIndex &child) const {
+    Q_UNUSED(child)
+    return QModelIndex();
+}
+
+bool FileSizeDataModel::hasChildren(const QModelIndex &parent = QModelIndex()) const {
+    return parent == QModelIndex();
 }

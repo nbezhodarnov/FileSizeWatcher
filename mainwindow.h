@@ -25,6 +25,10 @@ private slots:
 
     void on_fileType_triggered();
 
+    void on_list_triggered();
+
+    void on_table_triggered();
+
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -37,7 +41,7 @@ private:
     FileSizeDataModel *fileModel;
     QString path;
 
-    void infoShow();
+    void infoShow(bool);
 };
 
 #endif // MAINWINDOW_H

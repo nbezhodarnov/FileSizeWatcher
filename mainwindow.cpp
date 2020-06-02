@@ -119,3 +119,7 @@ void MainWindow::on_table_triggered() {
 void MainWindow::on_barChart_triggered() {
     infoShow(false, new BarBridge(this));
 }
+
+void MainWindow::on_pieChart_triggered() {
+    infoShow(false, new PieBridge(this));
+}

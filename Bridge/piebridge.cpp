@@ -1,40 +1,32 @@
-#include "barbridge.h"
+#include "piebridge.h"
 
-BarBridge::BarBridge(QObject *p): AbstractBridge(p) {
+PieBridge::PieBridge(QObject *p): AbstractBridge(p) {
     view = new QtCharts::QChartView();
     model = new QtCharts::QChart();
 };
 
-BarBridge::~BarBridge() {
+PieBridge::~PieBridge() {
     delete view;
     //delete model;
 }
 
-QWidget* BarBridge::UpdateData(QList<FileSizeData> data) {
+QWidget* PieBridge::UpdateData(QList<FileSizeData> data) {
     QtCharts::QChart *newModel = new QtCharts::QChart();
     FileSizeData others("Другие", 0, 0.0);
-    QtCharts::QBarSeries *series = new QtCharts::QBarSeries();
+    QtCharts::QPieSeries *series = new QtCharts::QPieSeries();
     for (auto iterator = data.begin(); iterator != data.end(); iterator++) {
         if (iterator->sizePercentage < 1) {
             others.size += iterator->size;
             others.sizePercentage += iterator->sizePercentage;
             continue;
         }
-        QtCharts::QBarSet *set = new QtCharts::QBarSet(iterator->FileInfo + " (" + QString::number(iterator->sizePercentage, 'f', 2) + "%)");
-        set->operator<<(iterator->sizePercentage);
-        series->append(set);
+        series->append(new QtCharts::QPieSlice(iterator->FileInfo + " (" + QString::number(iterator->sizePercentage, 'f', 2) + "%)", iterator->sizePercentage));
     }
     if (others.size > 0) {
-        QtCharts::QBarSet *set = new QtCharts::QBarSet(others.FileInfo + " (" + QString::number(others.sizePercentage, 'f', 2) + "%)");
-        set->operator<<(others.sizePercentage);
-        series->append(set);
+        series->append(new QtCharts::QPieSlice(others.FileInfo + " (" + QString::number(others.sizePercentage, 'f', 2) + "%)", others.sizePercentage));
     }
     newModel->addSeries(series);
     newModel->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
-    QtCharts::QValueAxis *axisY = new QtCharts::QValueAxis();
-    axisY->setRange(0,100);
-    newModel->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
     newModel->legend()->setVisible(true);
     newModel->legend()->setAlignment(Qt::AlignRight);
     QtCharts::QChart *modelTemp = model;

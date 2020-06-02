@@ -20,6 +20,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         Bridge/barbridge.cpp \
         Bridge/listbridge.cpp \
+        Bridge/piebridge.cpp \
         Bridge/tablebridge.cpp \
         DataModel/filesizedatamodel.cpp \
         Strategies/filetypestrategy.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     Bridge/abstractbridge.h \
     Bridge/barbridge.h \
     Bridge/listbridge.h \
+    Bridge/piebridge.h \
     Bridge/tablebridge.h \
     DataModel/filesizedatamodel.h \
     Strategies/FileSizeData.h \

@@ -12,6 +12,7 @@
 #include "Bridge/tablebridge.h"
 #include "Bridge/listbridge.h"
 #include "Bridge/barbridge.h"
+#include "Bridge/piebridge.h"
 
 namespace Ui {
 class MainWindow;
@@ -33,6 +34,8 @@ private slots:
     void on_table_triggered();
 
     void on_barChart_triggered();
+
+    void on_pieChart_triggered();
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);

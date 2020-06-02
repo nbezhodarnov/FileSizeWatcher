@@ -55,6 +55,7 @@
     <addaction name="list"/>
     <addaction name="table"/>
     <addaction name="barChart"/>
+    <addaction name="pieChart"/>
    </widget>
    <addaction name="strategyChoose"/>
    <addaction name="viewType"/>
@@ -83,6 +84,11 @@
   <action name="barChart">
    <property name="text">
     <string>Столбчатая диаграмма</string>
+   </property>
+  </action>
+  <action name="pieChart">
+   <property name="text">
+    <string>Круговая диаграмма</string>
    </property>
   </action>
  </widget>

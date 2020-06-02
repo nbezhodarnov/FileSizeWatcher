@@ -5,12 +5,12 @@ ListBridge::ListBridge(QObject *p): AbstractBridge(p) {
     model = new FileSizeDataModel();
 };
 
-ListBridge::~ListBridge(){
+ListBridge::~ListBridge() {
     delete view;
     delete model;
 }
 
-QWidget* ListBridge::UpdateData(QList<FileSizeData> data){
+QWidget* ListBridge::UpdateData(QList<FileSizeData> data) {
     delete model;
     model = new FileSizeDataModel(parent, data);
     view->setModel(model);

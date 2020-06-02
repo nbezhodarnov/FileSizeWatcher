@@ -5,12 +5,12 @@ TableBridge::TableBridge(QObject *p): AbstractBridge(p) {
     model = new FileSizeDataModel();
 };
 
-TableBridge::~TableBridge(){
+TableBridge::~TableBridge() {
     delete view;
     delete model;
 }
 
-QWidget* TableBridge::UpdateData(QList<FileSizeData> data){
+QWidget* TableBridge::UpdateData(QList<FileSizeData> data) {
     delete model;
     model = new FileSizeDataModel(parent, data);
     view->setModel(model);

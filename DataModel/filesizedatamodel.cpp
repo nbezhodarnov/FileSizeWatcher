@@ -2,28 +2,24 @@
 
 
 FileSizeDataModel::FileSizeDataModel(QObject *parent, QList<FileSizeData> dt) :
-    QAbstractItemModel(parent)
-{
+    QAbstractItemModel(parent) {
     dataModel = dt;
 }
 
 //Возвращаем количество строк, в зависимости от количества данных в списке
-int FileSizeDataModel::rowCount(const QModelIndex &parent) const
-{
+int FileSizeDataModel::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent)
     return dataModel.count();
 }
 
 //Возвращаем количество столбцов, оно у нас постоянно
-int FileSizeDataModel::columnCount(const QModelIndex &parent) const
-{
+int FileSizeDataModel::columnCount(const QModelIndex &parent) const {
     Q_UNUSED(parent)
     return 3;
 }
 
 //Возвращаем названия заголовков. Обратите внимание на тип возвращаемого значения.
-QVariant FileSizeDataModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
+QVariant FileSizeDataModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole) {
         return QVariant();
     }
@@ -48,8 +44,7 @@ QVariant FileSizeDataModel::headerData(int section, Qt::Orientation orientation,
 //объект QVariant(). Тем самым обеспечивается устойчивая работа представления, при
 //отображении модели в случае наличия ошибок.
 // Модельный индекс характеризуется номером строки и столбца, следовательно в зависимости
-QVariant FileSizeDataModel::data(const QModelIndex &index, int role) const
-{
+QVariant FileSizeDataModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid() || dataModel.count() <= index.row() || (role != Qt::DisplayRole && role != Qt::EditRole))
     {
         return QVariant();

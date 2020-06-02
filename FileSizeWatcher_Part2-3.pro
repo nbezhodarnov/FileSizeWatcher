@@ -1,4 +1,5 @@
 QT       += core gui
+QT       += charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -17,6 +18,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        Bridge/barbridge.cpp \
+        Bridge/listbridge.cpp \
+        Bridge/piebridge.cpp \
+        Bridge/tablebridge.cpp \
         DataModel/filesizedatamodel.cpp \
         Strategies/filetypestrategy.cpp \
         Strategies/folderstrategy.cpp \
@@ -29,6 +34,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    Bridge/abstractbridge.h \
+    Bridge/barbridge.h \
+    Bridge/listbridge.h \
+    Bridge/piebridge.h \
+    Bridge/tablebridge.h \
     DataModel/filesizedatamodel.h \
     Strategies/FileSizeData.h \
     Strategies/Tests.h \

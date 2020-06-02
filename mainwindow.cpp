@@ -5,10 +5,7 @@
 #include <QTableView>
 #include <QTreeView>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
+MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     groupingStrategy = new FolderStrategy();
     QString homePath = QDir::homePath();
@@ -22,10 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->folderTreeView->hideColumn(1);
     ui->folderTreeView->hideColumn(3);
 
-    fileModel = new FileSizeDataModel(this, QList<FileSizeData>());
-    view = new QTableView();
-    view->setModel(fileModel);
-    ui->splitter->addWidget(view);
+    bridge = new TableBridge(this);
+    ui->splitter->addWidget(bridge->UpdateData(data));
 
     QItemSelectionModel *selectionModel = ui->folderTreeView->selectionModel();
 
@@ -47,32 +42,24 @@ MainWindow::MainWindow(QWidget *parent) :
     */
 }
 
-void MainWindow::infoShow(bool refresh = true) {
-    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
-    if (refresh) {
-        delete fileModel;
-        fileModel = new FileSizeDataModel(this, groupingStrategy->Explore(path));
-    }
-    int length = 200;
-    int dx = 30;
-    //TODO: !!!!!
-    /*
-    Тут простейшая обработка ширины первого столбца относительно длины названия папки.
-    Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
-    Требуется доработка(переработка).
-    */
-    if (dirModel->fileName(index).length() * dx > length) {
-        length = length + dirModel->fileName(index).length() * dx;
+void MainWindow::infoShow(bool refreshData = true, AbstractBridge *br = nullptr) {
+    if (refreshData) {
+        data = groupingStrategy->Explore(path);
+        bridge->UpdateData(data);
+    } else {
+        QList<int> width = ui->splitter->sizes();
+        delete bridge;
+        bridge = br;
+        ui->splitter->addWidget(bridge->UpdateData(data));
+        ui->splitter->setSizes(width);
     }
     this->statusBar()->showMessage("Выбранный путь: " + path);
-    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
-    view->setModel(fileModel);
 }
 
-void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
-{
+void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected) {
     //Q_UNUSED(selected);
     Q_UNUSED(deselected);
+    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
     QModelIndexList indexs = selected.indexes();
     QString filePath = "";
 
@@ -84,50 +71,55 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
         //this->statusBar()->showMessage("Выбранный путь: " + dirModel->filePath(indexs.constFirst()));
     }
 
+    int length = 200;
+    int dx = 30;
+    //TODO: !!!!!
+    /*
+    Тут простейшая обработка ширины первого столбца относительно длины названия папки.
+    Это для удобства, что бы при выборе папки имя полностью отображалась в  первом столбце.
+    Требуется доработка(переработка).
+    */
+    if (dirModel->fileName(index).length() * dx > length) {
+        length = length + dirModel->fileName(index).length() * dx;
+    }
+    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length());
+
     path = filePath;
 
     infoShow();
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
     delete dirModel;
     delete groupingStrategy;
-    delete fileModel;
-    delete view;
+    delete bridge;
 }
 
-void MainWindow::on_folder_triggered()
-{
+void MainWindow::on_folder_triggered() {
     delete groupingStrategy;
     groupingStrategy = new FolderStrategy();
     infoShow();
 }
 
-void MainWindow::on_fileType_triggered()
-{
+void MainWindow::on_fileType_triggered() {
     delete groupingStrategy;
     groupingStrategy = new FileTypeStrategy();
     infoShow();
 }
 
-void MainWindow::on_list_triggered()
-{
-    QList<int> width = ui->splitter->sizes();
-    delete view;
-    view = new QTreeView(this);
-    ui->splitter->addWidget(view);
-    ui->splitter->setSizes(width);
-    infoShow(false);
+void MainWindow::on_list_triggered() {
+    infoShow(false, new ListBridge(this));
 }
 
-void MainWindow::on_table_triggered()
-{
-    QList<int> width = ui->splitter->sizes();
-    delete view;
-    view = new QTableView(this);
-    ui->splitter->addWidget(view);
-    ui->splitter->setSizes(width);
-    infoShow(false);
+void MainWindow::on_table_triggered() {
+    infoShow(false, new TableBridge(this));
+}
+
+void MainWindow::on_barChart_triggered() {
+    infoShow(false, new BarBridge(this));
+}
+
+void MainWindow::on_pieChart_triggered() {
+    infoShow(false, new PieBridge(this));
 }

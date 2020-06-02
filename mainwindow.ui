@@ -54,6 +54,7 @@
     </property>
     <addaction name="list"/>
     <addaction name="table"/>
+    <addaction name="barChart"/>
    </widget>
    <addaction name="strategyChoose"/>
    <addaction name="viewType"/>
@@ -77,6 +78,11 @@
   <action name="table">
    <property name="text">
     <string>Таблица</string>
+   </property>
+  </action>
+  <action name="barChart">
+   <property name="text">
+    <string>Столбчатая диаграмма</string>
    </property>
   </action>
  </widget>

@@ -9,6 +9,9 @@
 #include "DataModel/filesizedatamodel.h"
 #include "Strategies/filetypestrategy.h"
 #include "Strategies/folderstrategy.h"
+#include "Bridge/tablebridge.h"
+#include "Bridge/listbridge.h"
+#include "Bridge/barbridge.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,19 +32,23 @@ private slots:
 
     void on_table_triggered();
 
+    void on_barChart_triggered();
+
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private:
     Ui::MainWindow *ui;
-    QAbstractItemView *view;
-    ExplorerStrategy *groupingStrategy;
+
     QFileSystemModel *dirModel;
-    FileSizeDataModel *fileModel;
+
+    ExplorerStrategy *groupingStrategy;
+    QList<FileSizeData> data;
+    AbstractBridge *bridge;
     QString path;
 
-    void infoShow(bool);
+    void infoShow(bool, AbstractBridge*);
 };
 
 #endif // MAINWINDOW_H

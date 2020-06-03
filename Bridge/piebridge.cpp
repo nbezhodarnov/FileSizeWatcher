@@ -4,6 +4,8 @@
 PieBridge::PieBridge(QObject *p): AbstractBridge(p) {
     view = new QtCharts::QChartView(); // создание виджета
     model = new QtCharts::QChart(); // создание пустой модели (чтобы избежать ошибку SIGSEGV)
+    // задание настроек рендера
+    view->setRenderHint(QPainter::Antialiasing);
 };
 
 // деструктор
@@ -46,8 +48,6 @@ QWidget* PieBridge::UpdateData(const QList<FileSizeData> &data) {
     model = newModel;
     view->setChart(this->model);
     delete modelTemp;
-    // задание настроек рендера
-    view->setRenderHint(QPainter::Antialiasing);
     // возврат указателя на виджет
     return view;
 }

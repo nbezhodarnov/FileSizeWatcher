@@ -2,6 +2,7 @@
 #define TABLEBRIDGE_H
 
 #include <QAbstractItemModel>
+#include <QHeaderView>
 #include <QTableView>
 
 #include "DataModel/filesizedatamodel.h"

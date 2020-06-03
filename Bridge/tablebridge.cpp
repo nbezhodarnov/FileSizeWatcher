@@ -2,8 +2,12 @@
 
 // конструктор
 TableBridge::TableBridge(QObject *p): AbstractBridge(p) {
-    view = new QTableView(); // создание виджета
+    QTableView *view_ptr = new QTableView(); // создание виджета
     model = new FileSizeDataModel(); // создание пустой модели (чтобы избежать ошибку SIGSEGV)
+    // установление отображение на всю ширину и высоту виджета
+    view_ptr->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    // сохранение виджета
+    view = view_ptr;
 };
 
 // деструктор

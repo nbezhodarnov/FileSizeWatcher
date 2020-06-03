@@ -8,6 +8,7 @@
 // конструктор
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this); // настройка интерфейса окна
+    ui->folderTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents); // установка задания размера первого столбца в зависимости от длины отображающихся элементов
     groupingStrategy = new FolderStrategy(); // задание стратегии группировки
     path = QDir::homePath(); // задание пути к домашней папке
     // создание модели файловой системы и формирование отображения дерева папок
@@ -16,17 +17,14 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     dirModel->setRootPath(path);
     ui->folderTreeView->setModel(dirModel);
     ui->folderTreeView->expandAll();
-    // сокрытие ненужных столбцов
+    // скрытие ненужных столбцов
     ui->folderTreeView->hideColumn(1);
     ui->folderTreeView->hideColumn(3);
     // задание отображения
     bridge = new TableBridge(this);
     ui->splitter->addWidget(bridge->UpdateData(data));
-    // задание размера секции
-    ui->folderTreeView->header()->resizeSection(0, 200);
     // соединение сигнала выбора директории со слотом отображения информации
-    QItemSelectionModel *selectionModel = ui->folderTreeView->selectionModel();
-    connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
+    connect(ui->folderTreeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(on_selectionChangedSlot(const QItemSelection &, const QItemSelection &)));
     //Пример организации установки курсора в TreeView относительно модельного индекса
     /*
     QModelIndex indexHomePath = dirModel->index(path);
@@ -59,8 +57,7 @@ void MainWindow::infoShow(bool refreshData = true, AbstractBridge *br = nullptr)
 // слот, активирующийся при выборе директории
 void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected) {
     Q_UNUSED(deselected);
-    // получение индексов текущей и выбранной папок
-    QModelIndex index = ui->folderTreeView->selectionModel()->currentIndex();
+    // получение индекса выбранной папки
     QModelIndexList indexs = selected.indexes();
     // получение пути выбранной папки
     QString filePath = "";
@@ -69,13 +66,6 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
         filePath = dirModel->filePath(ix);
     }
     path = filePath; // сохранение пути
-    // задание ширины первого столбца
-    int length = 200;
-    int dx = 30;
-    if (dirModel->fileName(index).length() * dx > length) { // проверка на изменение в большую сторону
-        length = length + dirModel->fileName(index).length() * dx;
-    }
-    ui->folderTreeView->header()->resizeSection(index.column(), length + dirModel->fileName(index).length()); // задание ширины
     // отображение данных
     infoShow();
 }

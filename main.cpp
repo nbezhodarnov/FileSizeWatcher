@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     Tests tests; // запуск тестов
 
-    MainWindow window;
-    window.show();
+    MainWindow window; // создание окна
+    window.show(); // отображение окна
 
     return a.exec();
 }

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>360</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QTreeView" name="folderTreeView">
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="strategyChoose">
+    <property name="title">
+     <string>Группировка</string>
+    </property>
+    <addaction name="folder"/>
+    <addaction name="fileType"/>
+   </widget>
+   <widget class="QMenu" name="viewType">
+    <property name="title">
+     <string>Отображение</string>
+    </property>
+    <addaction name="list"/>
+    <addaction name="table"/>
+    <addaction name="barChart"/>
+    <addaction name="pieChart"/>
+   </widget>
+   <addaction name="strategyChoose"/>
+   <addaction name="viewType"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="folder">
+   <property name="text">
+    <string>По элементам</string>
+   </property>
+  </action>
+  <action name="fileType">
+   <property name="text">
+    <string>По типам</string>
+   </property>
+  </action>
+  <action name="list">
+   <property name="text">
+    <string>Список</string>
+   </property>
+  </action>
+  <action name="table">
+   <property name="text">
+    <string>Таблица</string>
+   </property>
+  </action>
+  <action name="barChart">
+   <property name="text">
+    <string>Столбчатая диаграмма</string>
+   </property>
+  </action>
+  <action name="pieChart">
+   <property name="text">
+    <string>Круговая диаграмма</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

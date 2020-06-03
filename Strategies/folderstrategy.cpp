@@ -8,8 +8,7 @@
 
 // конкретная функция вычисления информации о размерах содержимого папки (с группировкой по элементам папки)
 // на вход подаётся QString - путь к папке, на выходе QList<FileSizeData> - список данных о размере каждого элемента папки
-QList<FileSizeData> FolderStrategy::Explore (const QString &path)
-{
+QList<FileSizeData> FolderStrategy::Explore(const QString &path) {
     QFileInfo pathInfo(path);
     QTextStream out(stdout);
     QList<FileSizeData> result; // список данных о размере каждого элемента папки

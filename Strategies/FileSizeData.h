@@ -8,8 +8,8 @@ struct FileSizeData {
     QString FileInfo; // Название файла или тип
     quint64 size; // Размер файла в байтах
     double sizePercentage; // Процентное соотношение к общему размеру папки
-
-    FileSizeData(QString info_in, quint64 size_in, double sizePercentage_in): FileInfo(info_in), size(size_in), sizePercentage(sizePercentage_in) {};
+    // конструктор
+    FileSizeData(QString info_in = "", quint64 size_in = 0, double sizePercentage_in = 0.0): FileInfo(info_in), size(size_in), sizePercentage(sizePercentage_in) {};
 };
 
 #endif // FILESIZEDATA_H
